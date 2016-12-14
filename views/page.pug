@@ -1,0 +1,10 @@
+extends ./layout.pug
+
+block content
+
+  div.container(data-wio-id=pageContent.id)
+    - var pageTitle = pageContent.getStructuredText('page.title')
+    != pageTitle ? pageTitle.asHtml(ctx.linkResolver, ctx.htmlSerializer) : ""
+    
+    - var pageText = pageContent.getStructuredText('page.text')
+    != pageText ? pageText.asHtml(ctx.linkResolver, ctx.htmlSerializer) : ""
