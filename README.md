@@ -2,43 +2,51 @@
 
 This is a simple nodejs website example with a working HTML Serializer for prismic.io. 
 
-The HTML Serializer is located in the prismic-configuration.js file. It is then called in homepage.pug and page.pug.
-
-## Installing the project
-
-You can launch this project easily with the prismic.io command line tool if you want to try it out yourself.
-
-Start by installing the command line tool.
+The HTML Serializer function is located in the **prismic-configuration.js** file. 
 
 ```
-$ npm install -g prismic-cli
+htmlSerializer: function (element, content) {
+  // Don't wrap images in a <p> tag
+  if (element.type == 'image') {
+    return '<img src="' + element.url + '" alt="' + element.alt + '">';
+  }
+  // Add a class to hyperlinks & have them open in a new tab
+  if (element.type == 'hyperlink') {
+    return '<a class="some-link" href="' + element.url + '" target="_blank">' + content + '</a>';
+  }
+  // Return null to stick with the default behavior
+  return null;
+}
 ```
 
-Next, point your terminal to the location where you want to install the project folder and run the following command. The command line tool will prompt you to pick a name for your prismic repository and the project folder.
+It is then called in **homepage.pug**. Here is what it looks like.
 
 ```
-$ prismic theme https://github.com/prismic-levi/example-website-theme
+// This example is using the pug templating system
+div.container(data-wio-id=homepageContent.id)
+  
+  - var homepageTitle = homepageContent.getStructuredText('homepage.site-title')
+  != homepageTitle ? homepageTitle.asHtml(ctx.linkResolver, ctx.htmlSerializer) : ""
+
+  - var image = homepageContent.getImage('homepage.image')
+  - var imageUrl = image ? image.url : ""
+  img.site-image(src=imageUrl)
+
+  - var homepageText = homepageContent.getStructuredText('homepage.text')
+  != homepageText ? homepageText.asHtml(ctx.linkResolver, ctx.htmlSerializer) : ""
 ```
 
-This will automatically install the project files, set up a new prismic-repository, and create the custom types. 
-
-Then you just need to add some content on your prismic.io repository and you can launch the project locally to see it working. 
-
-
-## Launch the project locally
-
-Once the project is installed, launch a local instance of the project. Start by installing nodemon on your computer with the following command. You can skip this step if you have already installed nodemon.
+It is also called in **page.pug**. Here is an example.
 
 ```
-$ npm install -g nodemon
-```
+// This example is using the pug templating system
+div.container(data-wio-id=pageContent.id)
+  - var pageTitle = pageContent.getStructuredText('page.title')
+  != pageTitle ? pageTitle.asHtml(ctx.linkResolver, ctx.htmlSerializer) : ""
 
-Point your terminal to the project folder and run nodemon to start your local server.
-
+  - var pageText = pageContent.getStructuredText('page.text')
+  != pageText ? pageText.asHtml(ctx.linkResolver, ctx.htmlSerializer) : ""
 ```
-$ nodemon app.js
-```
-
 
 ## Licence
 
