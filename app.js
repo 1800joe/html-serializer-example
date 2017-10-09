@@ -1,18 +1,37 @@
 /**
  * Module dependencies.
  */
-var Prismic = require('prismic-nodejs');
-var app = require('./config');
-var PORT = app.get('port');
-var PConfig = require('./prismic-configuration');
-var request = require('request');
+const Prismic = require('prismic-javascript');
+const PrismicDOM = require('prismic-dom');
+const request = require('request');
+const Cookies = require('cookies');
+const PrismicConfig = require('./prismic-configuration');
+const app = require('./config');
+const PORT = app.get('port');
 
-app.listen(PORT, function() {
-  const repoEndpoint = PConfig.apiEndpoint.replace('/api', '');
-  request.post(repoEndpoint + '/app/settings/onboarding/run', {});
-  console.log('Point your browser to: http://localhost:' + PORT);
+app.listen(PORT, () => {
+  process.stdout.write(`Point your browser to: http://localhost:${PORT}\n`);
 });
 
+// Middleware to inject prismic context
+app.use((req, res, next) => {
+  res.locals.ctx = {
+    endpoint: PrismicConfig.apiEndpoint,
+    linkResolver: PrismicConfig.linkResolver,
+    htmlSerializer: PrismicConfig.htmlSerializer
+  };
+  // add PrismicDOM in locals to access them in templates.
+  res.locals.PrismicDOM = PrismicDOM;
+  Prismic.api(PrismicConfig.apiEndpoint, {
+    accessToken: PrismicConfig.accessToken,
+    req,
+  }).then((api) => {
+    req.prismic = { api };
+    next();
+  }).catch((error) => {
+    next(error.message);
+  });
+});
 
 /**
 * Function to render the 404 page
@@ -20,29 +39,6 @@ app.listen(PORT, function() {
 function render404(req, res, message) {
   return res.status(404).render('error', { message: message });
 }
-
-
-/**
-* Connect to the API
-*/
-app.use((req, res, next) => {
-  Prismic.api(PConfig.apiEndpoint,{accessToken: PConfig.accessToken, req: req})
-  .then((api) => {
-    req.prismic = {api: api};
-    res.locals.ctx = {
-      endpoint: PConfig.apiEndpoint,
-      linkResolver: PConfig.linkResolver,
-      htmlSerializer: PConfig.htmlSerializer
-    };
-    next();
-  }).catch(function(err) {
-    if (err.status == 404) {
-      render404(req, res, 'There was a problem connecting to your API. Please configure your API-Endpoint in your configuration file.');
-    } else {
-      res.status(500).render('error', {message: err});
-    }
-  });
-});
 
 
 /**
