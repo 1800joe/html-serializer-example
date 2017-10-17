@@ -1,5 +1,5 @@
 var PrismicDOM = require('prismic-dom');
-var Elements = PrismicDOM.Elements;
+var Elements = PrismicDOM.RichText.Elements;
 
 module.exports = {
 
