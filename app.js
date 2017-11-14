@@ -3,8 +3,6 @@
  */
 const Prismic = require('prismic-javascript');
 const PrismicDOM = require('prismic-dom');
-const request = require('request');
-const Cookies = require('cookies');
 const PrismicConfig = require('./prismic-configuration');
 const app = require('./config');
 const PORT = app.get('port');
@@ -58,7 +56,7 @@ app.route('*').get((req, res, next) => {
 * Preconfigured prismic preview
 */
 app.get('/preview', function(req, res) {
-  return Prismic.preview(req.prismic.api, PConfig.linkResolver, req, res);
+  return Prismic.preview(req.prismic.api, PrismicConfig.linkResolver, req, res);
 });
 
 
